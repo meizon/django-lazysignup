@@ -2,6 +2,7 @@ import re
 import uuid
 from django.conf import settings
 from django.db import models
+from django.db.models.loading import get_model
 try:
     from django.utils.timezone import now
 except ImportError:
@@ -82,4 +83,8 @@ class LazyUser(models.Model):
 
     @classmethod
     def get_user_class(cls):
-        return cls._meta.get_field('user').rel.to
+        rel_to = cls._meta.get_field('user').rel.to
+        if isinstance(rel_to, basestring):
+            rel_model = get_model(*rel_to.split('.', 1))
+            return rel_model
+        return rel_to
